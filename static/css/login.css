@@ -1,0 +1,47 @@
+.box{
+
+}
+.box input[type = "text"],.box input[type = "password"]{
+  display: flex;
+  align-content: center;
+  background: rgba(228, 228, 228, 0.86);
+  border-radius: 6px;
+  border: none;
+  padding: 8px;
+  margin: 8px 0px 12px 0px;
+  width: 100%;
+  outline: none;
+  color: #003440;
+  /*transition: 0.25s;*/
+  filter: drop-shadow(0px 7px 6px rgba(255, 255, 255, 0.25));
+}
+
+.box input[type = "text"]:focus,.box input[type = "password"]:focus{
+  padding: 10px 8px;
+  margin: 6px 0px 10px 0px;
+}
+
+.box input[type = "submit"]{
+  /*border:0;*/
+  background: none;
+  display: block;
+  width: 100%;
+  justify-content: flex-end;
+  margin-top: 40px;
+  text-align: center;
+  border: 2px solid #fff;
+  outline: none;
+  color: white;
+  border-radius: 8px;
+  padding: 8px 0px 10px 0px;
+  cursor: pointer;
+}
+
+.box input[type = "submit"]:hover{
+  border-color: var(--golden);
+  color: var(--golden);
+}
+
+.box label{
+  color: rgba(228, 228, 228, 0.9);
+}

@@ -1,0 +1,57 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block content %}
+<div class="max-w-screen-lg body-font container mx-auto ">
+  <h1 class="mt-12 font-normal text-lg">Импортировать в систему новый учебный план</h1>
+  <div class="flex flex-nowrap flex-row items-center justify-between ">
+    <div class="w-1/2 mt-10">
+        <form class=" w-5/6 flex flex-wrap flex-column    " enctype="multipart/form-data" method="post" >
+            {% csrf_token %}
+            {{ upload }}
+            <button class="w-full my-9 px-3 pt-1 pb-2 font-semibold rounded border-2 button-deepblue tracking-wide inline-flex justify-center link-home-hover" type="submit">Загрузить</button>
+      </form>
+    </div>
+    <div class="bg-red-100 w-1/2 ">
+      Памятка
+      <p id="id_ext_p" class="bg-gray-50">Допускаются только файлы с расширением xls или xlsx</p>
+    </div>
+  </div>
+</div>
+<script lang="javascript" src="https://unpkg.com/xlsx/dist/xlsx.full.min.js"></script>
+<script>
+    const upload = document.getElementById('id_upload-file')
+    function handleFile(e) {
+        var files = e.target.files, f = files[0],
+            ext = "не определилось",
+            parts = f.name.split('.');
+        const extentions = ['xls', 'xlsx']
+        if (parts.length > 1) ext = parts.pop();
+            document.getElementById('id_ext_p').className="font-normal";
+        if (!extentions.includes(ext)) {
+            document.getElementById('id_ext_p').className="text-red-600 font-semibold";
+            throw new TypeError('Файл должен иметь расширение xls или xlsx!');
+        }
+
+        var reader = new FileReader();
+        reader.onload = function(e) {
+            var data = new Uint8Array(e.target.result);
+            var workbook = XLSX.read(data, {type: 'array'});
+            var select = document.getElementById('id_upload-page')
+            while (select.lastElementChild) {
+                select.removeChild(select.lastElementChild);
+            }
+            var sheets = workbook.SheetNames
+            for (var sheet in sheets){
+                var opt = document.createElement('option');
+                opt.value = sheets[sheet];
+                opt.innerHTML = sheets[sheet];
+                select.appendChild(opt);
+            }
+        };
+        reader.readAsArrayBuffer(f);
+    }
+    upload.addEventListener('change', handleFile, false);
+</script>
+{% endblock content %}
+

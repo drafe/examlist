@@ -1,0 +1,30 @@
+{% load static %}
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>exam lists</title>
+    <link href="{% static 'css/style.css' %}" rel="stylesheet" type="text/css">
+</head>
+<body>
+    <div class="body-container">
+        <div>
+
+            <form method="post">
+                {% csrf_token %}
+                {{ form }}
+                <input type='submit'>
+                    Login
+                </input>
+            </form>
+
+        </div>
+        <div>
+            <div class="absolute right-0 ftf-home-logo filter-blur bg-white rounded-full"> </div>
+            <img class="absolute right-0 ftf-home-logo " src="{% static 'image/ftf.png' %}">
+        </div>
+    </div>
+</body>
+</html>
+

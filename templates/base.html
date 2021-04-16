@@ -1,0 +1,23 @@
+{% load static %}
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>exam lists</title>
+    <link rel="icon" href="{% static 'image/logo-black.svg' %}">
+    <link href="{% static 'css/style.css' %}" rel="stylesheet" type="text/css">
+    <link href="https://unpkg.com/tailwindcss@^2/dist/tailwind.min.css" rel="stylesheet">
+    <link rel="preconnect" href="https://fonts.gstatic.com">
+    <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;500&display=swap" rel="stylesheet">
+    <script lang="javascript" src="https://unpkg.com/xlsx/dist/xlsx.full.min.js"></script>
+{#     <script src="https://code.jquery.com/jquery-1.12.4.js"></script>#}
+    <script lang="javascript" src="{% static 'js/main.js' %}"></script>
+</head>
+<body>
+    {% include 'navbar.html' %}
+    {% block content %}
+    {% endblock content %}
+
+</body>
+</html>

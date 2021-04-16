@@ -1,0 +1,43 @@
+{% load static %}
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>exam lists</title>
+    <link rel="icon" href="{% static 'image/logo-black.svg' %}">
+    <link href="{% static 'css/style.css' %}" rel="stylesheet" type="text/css">
+    <link href="{% static 'css/login.css' %}" rel="stylesheet" type="text/css">
+    <link href="https://unpkg.com/tailwindcss@^2/dist/tailwind.min.css" rel="stylesheet">
+    <link rel="preconnect" href="https://fonts.gstatic.com">
+    <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;500&display=swap" rel="stylesheet">
+</head>
+<body class="body-font">
+<div class=" text-white h-screen w-screen body-font bg-home-gradient">
+<div class="w-full my-0 mx-auto">
+    <div class="w-full min-h-screen flex ">
+        <div class="flex-nowrap  items-center">
+            <div class="bg-login-gradient flex justify-end  items-center min-h-screen width-40vw ">
+            <form class="box mx-7 text-white body-font width-login-form" method="post">
+                <a href="{% url 'home' %}" class="flex title-font font-medium items-center mb-7 link-home-hover">
+                    <img class="w-12 h-12 color" src="{% static 'image/logo-white.svg' %}">
+                    <span class="ml-2.5 text-lg">exam lists</span>
+                </a>
+                {% csrf_token %}
+                {{ form }}
+{#                <button class="mt-7 p-1 pb-2 w-full lowercase font-semibold button-12radius inline-flex justify-center link-home-hover" type='submit'>Войти</button>#}
+                <input type='submit' value="Войти">
+{#                <a class="text-gray-300 mt-3 w-full inline-flex justify-center lowercase font-light link-home-hover">Вернуться</a>#}
+            </form>
+            </div>
+            <div class="bg-home-gradient width-60vw ">
+                <div class="absolute right-0 ftf-login-logo filter-blur bg-white rounded-full"> </div>
+                <img class="absolute right-0 ftf-login-logo" src="{% static 'image/ftf.png' %}">
+            </div>
+        </div>
+    </div>
+</div>
+</div>
+</body>
+</html>
+

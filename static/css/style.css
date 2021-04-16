@@ -1,0 +1,70 @@
+{% load static %}
+
+.bg-head-gradient{
+    background: linear-gradient(90.12deg, #013642 0%, #005F7A 101.79%);
+}
+.bg-login-gradient{
+    background: linear-gradient(200.63deg, #003440 0%, rgba(0, 52, 64, 0.53) 98.67%);
+}
+.bg-home-gradient{
+    background: linear-gradient(307.77deg, #00B4DB 3.44%, #0083B0 75.62%);
+}
+
+.min-width-40per{
+    min-width: 40%;
+}
+.width-60vw{
+    min-width: 60vw;
+    max-width: 60vw;
+}
+.width-40vw{
+    min-width: 40vw;
+    max-width: 40vw;
+}
+.width-login-form{
+    max-width: 225px;
+    min-width: 225px;
+}
+.ftf-home-logo{
+    width: 500px;
+    height: 500px;
+    top: 100px;
+}
+.ftf-login-logo{
+    width: 500px;
+    height: 500px;
+    top: 100px;
+}
+.filter-blur{
+    filter: blur(500px);
+}
+.button-12radius{
+    border: 2px solid #FFFFFF;
+    box-sizing: border-box;
+    border-radius: 12px;
+}
+.button-deepblue{
+    color: #003440;
+    border-color: #0083B0;
+}
+
+.text-deepblue{
+  color: #003440;
+}
+
+:root {
+  --golden:  #FFCB39;
+}
+.text-golden{
+    color: var(--golden);
+}
+.border-golden{
+    border-color: var(--golden);
+}
+.link-home-hover:hover{
+    border-color: var(--golden);
+    color: var(--golden);
+}
+.line-h{
+    line-height: 147.3%;
+}

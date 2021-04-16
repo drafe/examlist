@@ -1,0 +1,26 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block content %}
+<div class="max-w-screen-lg body-font container mx-auto ">
+    <h1 class="mt-12 font-normal text-lg">Семестровый список дисциплин</h1>
+    <div class="mt-9 flex flex-nowrap items-center justify-between ">
+        <form class="w-full inline-flex items-center" method="get" >
+            {{ filter_form }}
+            <button class="ml-9 px-3 pt-1 pb-2 rounded border-2 button-deepblue tracking-wide inline-flex justify-center link-home-hover" type="submit">Загрузить</button>
+        </form>
+    </div>
+
+{% block table %}
+{% endblock table %}
+
+</div>
+<script>
+    {#const year_st = document.getElementById('id_year');#}
+    {#const year_end = document.getElementById('id_year_end');#}
+    {##}
+    {#year_st.oninput = function () {#}
+    {#    year_end.setAttribute('value', year_st.value) ;#}
+    {# #}
+</script>
+{% endblock content %}

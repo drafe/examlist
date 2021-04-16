@@ -1,0 +1,24 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block content %}
+<div class=" text-white h-screen body-font bg-home-gradient">
+    <div class="max-w-screen-lg container mx-auto flex flex-nowrap flex-row items-center justify-between">
+        <div class="flex-column  pt-28 min-width-40per w-2/5">
+            <h1 class="text-gray-100 font-bold text-3xl">Система генерации списков дисциплин по семестрам </h1>
+            <p class="pt-7 text-gray-900 text-base font-medium line-h text-justify">Интересно узнать, какие
+                <span class="text-gray-200">предметы</span> будут читаться в следующем
+                <span class="text-gray-200">семестре</span>, но лень смотреть в учебном плане? Хочешь
+                <span class="text-gray-200">перевестись</span>, но не понимаешь, как приблизительно рассчитать
+                <span class="text-gray-200">академическую разницу</span>?</p>
+            <p class="pt-3 text-golden text-base">Теперь всё можно узнать в одном месте!</p>
+            <a class="mt-9 p-2 pb-3 w-full font-semibold tracking-wide button-12radius inline-flex justify-center link-home-hover" href="#">узнать читаемые дисциплины</a><br>
+            <a class="mt-5 p-2 pb-3 w-full font-semibold tracking-wide button-12radius inline-flex justify-center link-home-hover" href="#">рассчитать академ разницу</a>
+        </div>
+        <div>
+            <div class="absolute right-0 ftf-home-logo filter-blur bg-white rounded-full"> </div>
+            <img class="absolute right-0 ftf-home-logo " src="{% static 'image/ftf.png' %}">
+        </div>
+    </div>
+</div>
+{% endblock content %}
