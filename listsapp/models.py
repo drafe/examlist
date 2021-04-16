@@ -1,5 +1,7 @@
+from django.core.exceptions import ValidationError
 from django.db import models
 from django.contrib.auth.models import AbstractUser
+from django.utils.translation import gettext_lazy as _
 
 
 class Degree(models.Model):
@@ -41,6 +43,8 @@ class AcademicPlan(models.Model):
         (QUIZ, 'Зачёт'),
         (M_QU, 'Диф. зачёт')
     ]
+    MAX_SEMESTER = 8
+
     semester = models.PositiveIntegerField()
     control = models.CharField(max_length=4, choices=CONTROLS)
     id_specialty = models.ForeignKey('Specialty', on_delete=models.PROTECT)
@@ -48,6 +52,13 @@ class AcademicPlan(models.Model):
     h_laboratory = models.PositiveIntegerField()
     h_lecture = models.PositiveIntegerField()
     h_practice = models.PositiveIntegerField()
+
+    def clean(self):
+        # Don't allow draft entries to have a pub_date.
+        if self.semester == 0:
+            raise ValidationError({'semester': _('Отсчет семестров начинается с 1')})
+        elif self.semester > self.MAX_SEMESTER:
+            raise ValidationError({'semester': _(f'Максимальное значение для семестра равно {self.MAX_SEMESTER}')})
 
 
 class Group(models.Model):

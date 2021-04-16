@@ -1,0 +1,37 @@
+{% extends 'subjects_base.html' %}
+{% load static %}
+
+{% block table %}
+
+{% for subj in subjects %}
+    <tr class="bg-white">
+        <td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">
+            {{ subj.id_subject }}
+        </td>
+        <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+            {{ subj.h_lecture }}
+        </td>
+        <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+            {{ subj.h_practice }}
+        </td>
+        <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+            {{ subj.h_laboratory }}
+        </td>
+        <td class="px-6 py-4 whitespace-nowrap">
+            {% if subj.control == 'exam' %}
+                <span class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full bg-red-100 text-red-800">
+                Экзамен
+            {% elif subj.control == 'quiz' %}
+                <span class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full bg-green-100 text-green-800">
+                Зачёт
+            {% elif subj.control == 'm_qu' %}
+                <span class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full bg-yellow-100 text-yellow-800">
+                Диф. зачёт
+            {% endif %}
+            </span>
+        </td>
+    </tr>
+{% endfor %}
+
+
+{% endblock table %}

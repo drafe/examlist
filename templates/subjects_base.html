@@ -10,10 +10,43 @@
             <button class="ml-9 px-3 pt-1 pb-2 rounded border-2 button-deepblue tracking-wide inline-flex justify-center link-home-hover" type="submit">Загрузить</button>
         </form>
     </div>
+<h2 class="mb-2 mt-9 font-semibold text-deepblue">
+    {{ title }}
+    </h2>
+    <div class="flex flex-col w-full">
+            <div class="-my-2 overflow-x-auto sm:-mx-6 lg:-mx-8">
+            <div class="py-2 align-middle inline-block min-w-full sm:px-6 lg:px-8">
+                <div class="shadow overflow-hidden border-b border-gray-200 sm:rounded-lg">
+                <table class="min-w-full divide-y divide-gray-200">
+                    <thead class="bg-gray-50">
+                        <tr>
+                            <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                            Дисциплина
+                            </th>
+                            <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                            Часов лекций
+                            </th>
+                            <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                            Часов практики
+                            </th>
+                            <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                            Часов лабораторных
+                            </th>
+                            <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                            Контроль
+                            </th>
 
+                        </tr>
+                    </thead>
+                    <tbody>
 {% block table %}
 {% endblock table %}
-
+                    </tbody>
+                </table>
+                </div>
+            </div>
+            </div>
+        </div>
 </div>
 <script>
     {#const year_st = document.getElementById('id_year');#}

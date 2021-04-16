@@ -3,6 +3,7 @@ from django.core.exceptions import ValidationError
 from django.contrib.auth import get_user_model
 from django.contrib.auth.forms import UserCreationForm, UsernameField
 
+from datetime import date
 from pathlib import Path
 
 from listsapp.models import Degree, Rule, Faculty, Specialty
@@ -31,7 +32,7 @@ class SubjectFilterForm(forms.Form):
 
 class SubjectFilterUserForm(SubjectFilterForm):
     year = forms.IntegerField(label='Начало учебного года', widget=forms.NumberInput(
-        attrs={'class': INPUT_CLASS, 'type': "number", 'min': '2000'}))
+        attrs={'class': INPUT_CLASS, 'type': "number", 'value': date.today().year}))
     # year_end = forms.IntegerField(label='', widget=forms.NumberInput(
     #     attrs={'class': INPUT_CLASS, 'type': "number", 'readonly': True}))
 

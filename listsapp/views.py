@@ -1,15 +1,14 @@
-from datetime import date
-
+from django.contrib.auth import logout
 from django.contrib.auth.decorators import login_required
-from django.http import HttpResponseRedirect
+from django.db.models import Count
 from django.shortcuts import render, redirect
-from django.contrib.auth import authenticate, login, logout
-from .forms import UploadFileForm, SubjectFilterForm, SubjectFilterUserForm
-from .functionality.upload import handle_uploaded_file, is_xlsx
-# Create your views here.
-from django.views import generic
 
-from .models import AcademicPlan, Faculty, Specialty, Group
+from .forms import UploadFileForm, SubjectFilterForm, SubjectFilterUserForm
+from .models import AcademicPlan, Specialty, Group
+
+from itertools import groupby
+
+# Create your views here.
 
 
 def home(request):
@@ -41,35 +40,68 @@ def subjects_filter(request):
     try:
         spec = int(request.GET['specialty'])
         sem = int(request.GET['semester'])
-    except :
+    except:
         qs = None
     else:
-        if request.user.is_authenticated:
-            gr = Group.objects.select_related('id_specialty')
-            qs = AcademicPlan.objects.select_related('id_specialty', 'id_subject').all()
-        else:
-            qs = AcademicPlan.objects.select_related('id_specialty', 'id_subject').all()
-            qs = qs.filter(id_specialty=spec).filter(semester=sem)
-    return qs
+        qs = AcademicPlan.objects.select_related('id_specialty', 'id_subject').all()
+        qs = qs.filter(id_specialty=spec).filter(semester=sem).order_by('control')
+        spec = Specialty.objects.select_related('id_faculty').get(id=request.GET['specialty'])
+        context = {'subjects': qs,
+                   'title': f"{spec.id_faculty} {spec} {request.GET['semester']} семестр",
+                   }
+        return context
+
+
+def subjects_user_filter(request):
+    try:
+        spec = int(request.GET['specialty'])
+        sem = int(request.GET['semester'])
+        year = int(request.GET['year'])
+    except:
+        qs = None
+    else:
+        semesters = [i for i in range(1, AcademicPlan.MAX_SEMESTER+1) if i % 2 != sem]
+        gr = Group.objects.select_related('id_specialty')\
+            .filter(id_specialty=spec)\
+            .filter(enter_year__range=(year-3, year))\
+            .values('enter_year').annotate(count=Count('id'))
+
+        qs = AcademicPlan.objects.select_related('id_specialty', 'id_subject')\
+            .filter(id_specialty=spec)\
+            .filter(semester__in=semesters)\
+            .order_by('semester')
+
+        s = {}
+        for q in qs:
+            if q.semester in s:
+                s[q.semester].append(q)
+            else:
+                s[q.semester] = [q, ]
+
+        subjects = [{'course': (i+1 // 2), 'subjects': s[i]} for i in s]
+        for i, g in enumerate(gr):
+            subjects[i]['groups'] = g['count']
+
+        spec = Specialty.objects.select_related('id_faculty').get(id=request.GET['specialty'])
+        sem = 'осенний' if int(request.GET['semester']) == 0 else 'весенний'
+        context = {'subjects': subjects,
+                   'title': f"{spec.id_faculty} {spec} : {year}-{year + 1} уч.год {sem} семестр"
+                   }
+        return context
 
 
 def SubjectsFilterView(request):
     context = {}
     if request.GET:
-        qs = subjects_filter(request)
-        spec = Specialty.objects.select_related('id_faculty').get(id=request.GET['specialty'])
-        context = {'subjects': qs, }
         if request.user.is_authenticated:
-            year = int(request.GET['year'])
-            sem = 'осенний' if int(request.GET['semester']) == 0 else 'весенний'
-            context['title'] = f"{spec.id_faculty} {spec} : {year}-{year+1} уч.год {sem} семестр"
+            context = subjects_user_filter(request)
         else:
-            context['title'] = f"{spec.id_faculty} {spec} {request.GET['semester']} семестр"
+            context = subjects_filter(request)
 
     if request.user.is_authenticated:
         context['filter_form'] = SubjectFilterUserForm()
+        return render(request, "subjects_user.html", context)
     else:
         context['filter_form'] = SubjectFilterForm(years=4)
-
-    return render(request, "subjects_guest.html", context)
+        return render(request, "subjects.html", context)
 
