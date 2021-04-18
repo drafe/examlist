@@ -25,31 +25,33 @@
         var files = e.target.files, f = files[0],
             ext = "не определилось",
             parts = f.name.split('.');
-        const extentions = ['xls', 'xlsx']
-        if (parts.length > 1) ext = parts.pop();
-            document.getElementById('id_ext_p').className="font-normal";
+        const extentions = ['xls', 'xlsx'];
+        if (parts.length > 1) {ext = parts.pop();}
+        console.log(ext)
+        document.getElementById('id_ext_p').className="font-normal";
         if (!extentions.includes(ext)) {
             document.getElementById('id_ext_p').className="text-red-600 font-semibold";
             throw new TypeError('Файл должен иметь расширение xls или xlsx!');
         }
-
-        var reader = new FileReader();
-        reader.onload = function(e) {
-            var data = new Uint8Array(e.target.result);
-            var workbook = XLSX.read(data, {type: 'array'});
-            var select = document.getElementById('id_upload-page')
-            while (select.lastElementChild) {
-                select.removeChild(select.lastElementChild);
-            }
-            var sheets = workbook.SheetNames
-            for (var sheet in sheets){
-                var opt = document.createElement('option');
-                opt.value = sheets[sheet];
-                opt.innerHTML = sheets[sheet];
-                select.appendChild(opt);
-            }
-        };
-        reader.readAsArrayBuffer(f);
+        else {
+            var reader = new FileReader();
+            reader.onload = function(e) {
+                var data = new Uint8Array(e.target.result);
+                var workbook = XLSX.read(data, {type: 'array'});
+                var select = document.getElementById('id_upload-page')
+                while (select.lastElementChild) {
+                    select.removeChild(select.lastElementChild);
+                }
+                var sheets = workbook.SheetNames
+                for (var sheet in sheets){
+                    var opt = document.createElement('option');
+                    opt.value = sheets[sheet];
+                    opt.innerHTML = sheets[sheet];
+                    select.appendChild(opt);
+                }
+            };
+            reader.readAsArrayBuffer(f);
+        }
     }
     upload.addEventListener('change', handleFile, false);
 </script>

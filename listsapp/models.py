@@ -3,6 +3,8 @@ from django.db import models
 from django.contrib.auth.models import AbstractUser
 from django.utils.translation import gettext_lazy as _
 
+from schema import Schema, And, Use
+
 
 class Degree(models.Model):
     degree = models.CharField(max_length=50)
@@ -74,5 +76,45 @@ class Rule(models.Model):
     rule_name = models.CharField(max_length=120)
     rule = models.JSONField()
 
+    RULE_SCHEMA = Schema({'columns': {
+        'cipher': And(str, Use(str.upper), lambda s: s.isalpha()),
+        'subjects': And(str, Use(str.upper), lambda s: s.isalpha()),
+        'departments': And(str, Use(str.upper), lambda s: s.isalpha()),
+        'controls': {
+            'exam': And(str, Use(str.upper), lambda s: s.isalpha()),
+            'quiz': And(str, Use(str.upper), lambda s: s.isalpha()),
+            'course': And(str, Use(str.upper), lambda s: s.isalpha())
+        },
+        '1_sem': And(str, Use(str.upper), lambda s: s.isalpha()),
+        'lectures': And(int),
+        'practice': And(int),
+        'labs': And(int)},
+        'ciphers': And(list, lambda x: map(str, x))})
+    JSON_FORMAT_ERROR = '''Формат JSON должен быть следующим: 
+    "Физтех Очная": {
+      "columns": {
+         "cipher": "A",
+         "subjects": "B",
+         "departments": "BG",
+         "controls": {
+            "exam": "C",
+            "quiz": "D",
+            "course": "E"
+         },
+         "1_sem": "R",
+         "lectures": 1,
+         "practice": 2,
+         "labs": 3
+      },
+      "ciphers": [
+         "ОНБ",
+         "ПБ"
+      ]
+   },'''
+
     def __str__(self):
         return f"{self.rule_name}"
+
+    def clean(self):
+        if self.RULE_SCHEMA.validate(self.rule):
+            raise ValidationError({'rule': _(self.JSON_FORMAT_ERROR)})

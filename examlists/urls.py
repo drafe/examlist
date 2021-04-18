@@ -17,7 +17,7 @@ from django.conf import settings
 from django.conf.urls.static import static
 from django.contrib import admin
 from django.urls import path
-from listsapp.views import home, upload_file, SubjectsFilterView
+from listsapp.views import home, upload_file, SubjectsFilterView, upload_items, SubjectConflictView
 from django.contrib.auth.views import LoginView, LogoutView
 
 urlpatterns = [
@@ -26,6 +26,7 @@ urlpatterns = [
     path('login/', LoginView.as_view(), name='login'),
     path('logout/', LogoutView.as_view(), name='logout'),
     path('upload/', upload_file, name='upload'),
+    path('upload/conflicts/', SubjectConflictView.as_view(), name='upload_conflicts'),
     path('subjects/', SubjectsFilterView, name='subjects')
 ]
 
