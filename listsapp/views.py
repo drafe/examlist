@@ -4,7 +4,7 @@ from django.contrib.auth import logout
 from django.contrib.auth.decorators import login_required
 from django.core.exceptions import ValidationError
 from django.db.models import Count
-from django.forms import formset_factory, BaseFormSet, modelformset_factory
+from django.forms import formset_factory, BaseFormSet, modelformset_factory, BaseModelFormSet
 from django.http import Http404, HttpResponse
 from django.shortcuts import render, redirect
 from django.utils.decorators import method_decorator
@@ -29,37 +29,42 @@ def logout_request(request):
     return redirect('home')
 
 
+class PlanBaseFormSet(BaseModelFormSet):
+    def __init__(self, *args, **kwargs):
+        self.extra = kwargs.pop('extra', self.extra)
+        super(PlanBaseFormSet, self).__init__(*args, **kwargs)
+        for form in self.forms:
+            form.fields['id_subject'].disabled = True
+
+
 @method_decorator(login_required, name='dispatch')
 class PlanItemsCreateView(View):
     row_data = dict()
     template_name = 'upload_items.html'
-    PlanItemsFormSet = modelformset_factory(AcademicPlan, form=PlanItemUpload)
+    PlanItemsFormSet = modelformset_factory(AcademicPlan, formset=PlanBaseFormSet, form=PlanItemUpload)
 
-    def init_item(self, init, item, control, spec_name):
-        init[item[0]]['semester'] = item[1]
-        init[item[0]]['h_lecture'] = item[2]
-        init[item[0]]['h_laboratory'] = item[3]
-        init[item[0]]['h_practice'] = item[4]
-        init[item[0]]['control'] = control
-        init[item[0]]['id_specialty'] = Specialty(specialty=spec_name)
+    @staticmethod
+    def init_item(subj, item, spec_name):
+        return dict(id_subject=Subject.objects.get(id=subj[item[0]]),
+                    id_specialty=Specialty(specialty=spec_name),
+                    semester=item[1],
+                    h_lecture=item[2],
+                    h_laboratory=item[3],
+                    h_practice=item[4],
+                    control=item[5])
 
     def init_forms(self, request):
         request.session['row_data'] = self.row_data
         subj = self.row_data.get('subjects')
         spec = self.row_data.get('specialty')
-        init = [{'id_subject': Subject.objects.get(id=_)} for _ in subj]
-        for e in self.row_data.get('exam'):
-            self.init_item(init, e, AcademicPlan.EXAM, spec)
+        # init = [{'id_subject': Subject.objects.get(id=_)} for _ in subj]
+        data = [_ + [AcademicPlan.EXAM] for _ in self.row_data.get('exam')] \
+               + [_ + [AcademicPlan.QUIZ] for _ in self.row_data.get('quiz')] \
+               + [_ + [AcademicPlan.M_QU] for _ in self.row_data.get('m_qu')]
+        data = sorted(data, key=lambda x: x[0])
+        init = [self.init_item(subj, e, spec) for e in data]
 
-        for q in self.row_data.get('quiz'):
-            self.init_item(init, e, AcademicPlan.QUIZ, spec)
-
-        for mq in self.row_data.get('m_qu'):
-            self.init_item(init, e, AcademicPlan.M_QU, spec)
-
-        formset = PlanItemUpload(initial=init)
-        formset.forms = formset.initial_forms
-        return formset
+        return init
 
     def get(self, request):
 
@@ -67,7 +72,11 @@ class PlanItemsCreateView(View):
         if self.row_data is None:
             raise Http404('')
 
-        formset = self.init_forms(request)
+        init = self.init_forms(request)
+        formset = self.PlanItemsFormSet(
+            queryset=AcademicPlan.objects.none(),
+            initial=init,
+            extra=len(init))
         return render(request, self.template_name, {'plan_formset': formset})
 
     def post(self, request):

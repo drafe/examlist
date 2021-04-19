@@ -9,12 +9,16 @@ from listsapp.models import Degree, Rule, Faculty, Specialty, AcademicPlan, Subj
 
 User = get_user_model()
 
-SELECT_CLASS = """disabled:opacity-50 mt-1 mr-3 block w-full py-2 px-3 border border-gray-300 bg-white rounded-md shadow-sm 
-                                    focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm"""
-INPUT_CLASS = """disabled:opacity-50 mt-1 mr-3 py-2 px-3 focus:ring-indigo-500 focus:border-indigo-500 block w-full shadow-sm 
-                                    sm:text-sm border border-gray-300 rounded-md"""
-CHECK_CLASS = """disabled:opacity-50 mt-1 mr-3 py-2 px-3 focus:ring-indigo-500 focus:border-indigo-500 block w-1/6 shadow-sm 
-                                    sm:text-sm border border-gray-300 rounded-md"""
+SELECT_CLASS = """disabled:opacity-50 mt-1 mr-3 block w-full py-2 px-3 border border-gray-300 bg-white rounded-md 
+                shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm """
+INPUT_CLASS = """disabled:opacity-50 mt-1 mr-3 py-2 px-3 focus:ring-indigo-500 focus:border-indigo-500 block w-full 
+                shadow-sm sm:text-sm border border-gray-300 rounded-md """
+CHECK_CLASS = """disabled:opacity-50 mt-1 mr-3 py-2 px-3 focus:ring-indigo-500 focus:border-indigo-500 block w-1/6 
+                shadow-sm sm:text-sm border border-gray-300 rounded-md """
+HOURS_CLASS = """disabled:opacity-50 mt-0.5 mx-1.5 py-1.5 px-2 focus:ring-indigo-500 focus:border-indigo-500 block 
+                w-3/12 shadow-sm sm:text-sm border border-gray-300 rounded-md """
+SUBJECT_CLASS = """disabled:opacity-50 mt-0.5 mx-1.5 py-1.5 px-2 focus:ring-indigo-500 focus:border-indigo-500 block 
+                w-full shadow-sm sm:text-sm border border-gray-300 rounded-md """
 
 
 class SubjectConflictSolve(forms.Form):
@@ -23,10 +27,6 @@ class SubjectConflictSolve(forms.Form):
     is_create = forms.BooleanField(label='', required=False,
                                    widget=forms.CheckboxInput(attrs={'class': CHECK_CLASS}))
     sub_likes = forms.ChoiceField(label="", required=False, widget=forms.Select(attrs={'class': SELECT_CLASS}))
-
-    # def __new__(cls, *args, **kwargs):
-    #     if kwargs.get('initial'):
-    #         cls.choices = kwargs.get('initial').get('likes_choices')
 
     def __init__(self, *args, **kwargs):
         if kwargs.get('initial'):
@@ -57,21 +57,30 @@ class SubjectConflictSolve(forms.Form):
 class PlanItemUpload(forms.ModelForm):
     class Meta:
         model = AcademicPlan
-        fields = '__all__'
+        # fields = '__all__'
+        fields = ['semester', 'id_subject', 'h_lecture', 'h_laboratory', 'h_practice', 'control', 'id_specialty']
+
+        labels = {
+            'semester': _(''),
+            'id_subject': _(''),
+            'h_laboratory': _(''),
+            'h_lecture': _(''),
+            'h_practice': _(''),
+            'control': _(''),
+        }
 
         widgets = {
             'semester': forms.NumberInput(
                 attrs={
-                    'class': INPUT_CLASS,
+                    'class': HOURS_CLASS,
                     'type': "number",
                     'value': '1',
                     'min': '1',
                     'max': AcademicPlan.MAX_SEMESTER
                 }),
-            'subject': forms.TextInput(attrs={'class': INPUT_CLASS, 'read-only': True}),
             'h_laboratory': forms.NumberInput(
                 attrs={
-                    'class': INPUT_CLASS,
+                    'class': HOURS_CLASS,
                     'type': "number",
                     'value': '0',
                     'min': '0',
@@ -79,7 +88,7 @@ class PlanItemUpload(forms.ModelForm):
                 }),
             'h_lecture': forms.NumberInput(
                 attrs={
-                    'class': INPUT_CLASS,
+                    'class': HOURS_CLASS,
                     'type': "number",
                     'value': '0',
                     'min': '0',
@@ -87,18 +96,23 @@ class PlanItemUpload(forms.ModelForm):
                 }),
             'h_practice': forms.NumberInput(
                 attrs={
-                    'class': INPUT_CLASS,
+                    'class': HOURS_CLASS,
                     'type': "number",
                     'value': '0',
                     'min': '0',
                     'max': '9',
                 }),
-            'control': forms.Select(attrs={'class': SELECT_CLASS}),
+            'control': forms.Select(attrs={'class': HOURS_CLASS}),
             'id_specialty': forms.TextInput(
                 attrs={
                     'class': INPUT_CLASS,
                     'type': "hidden",
                     'value': '1',
+                }),
+            'id_subject': forms.Select(
+                attrs={
+                    'class': SUBJECT_CLASS,
+                    # 'disabled': True,
                 }),
         }
 
