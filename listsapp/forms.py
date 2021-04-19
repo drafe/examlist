@@ -24,6 +24,16 @@ class SubjectConflictSolve(forms.Form):
                                    widget=forms.CheckboxInput(attrs={'class': CHECK_CLASS}))
     sub_likes = forms.ChoiceField(label="", required=False, widget=forms.Select(attrs={'class': SELECT_CLASS}))
 
+    # def __new__(cls, *args, **kwargs):
+    #     if kwargs.get('initial'):
+    #         cls.choices = kwargs.get('initial').get('likes_choices')
+
+    def __init__(self, *args, **kwargs):
+        if kwargs.get('initial'):
+            sim = kwargs.get('initial').get('likes_choices')
+            self.base_fields['sub_likes'].choices = [(_[1].id, _[1]) for _ in sim]
+        super(SubjectConflictSolve, self).__init__(*args, **kwargs)
+
     def set_similar(self, sim: list):
         self.fields['sub_likes'].choices = [(_[1].id, _[1]) for _ in sim]
         # self.errors = None

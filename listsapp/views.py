@@ -94,6 +94,7 @@ class PlanItemsCreateView(View):
 
 
 class BaseSubjectFormSet(BaseFormSet):
+
     def set_total_via_init(self):
         self.forms = self.initial_forms
 
@@ -118,11 +119,10 @@ class SubjectConflictView(View):
     SubjectFormSet = formset_factory(SubjectConflictSolve, formset=BaseSubjectFormSet)
     template = 'upload_conflicts.html'
 
-    def init_forms(self, request, formset: SubjectFormSet):
-        request.session['row_data'] = self.row_data
+    def init_forms(self):
         similars = FuzzySubjectsComparison(self.row_data.get('subjects')).compareAll()
-        [fs.set_similar(similars[_]) for _, fs in enumerate(formset.initial_forms)]
-        formset.set_total_via_init()
+        init = [dict(likes_choices=lc, subject=_) for _, lc in zip(self.row_data.get('subjects'), similars)]
+        return init
 
     def get(self, request):
         self.row_data = request.session.pop("row_data", None)
@@ -169,11 +169,11 @@ class SubjectConflictView(View):
             #              [46, 5, 1, 1, 0], [48, 7, 1, 2, 0]],
             #     'm_qu': [[34, 3, 2, 2, 0], [34, 4, 1, 2, 0]]}
             raise Http404('')
+        request.session['row_data'] = self.row_data
 
-        init = [dict(subject=_) for _ in self.row_data.get('subjects')]
+        init = self.init_forms()
         formset = self.SubjectFormSet(initial=init)
-
-        self.init_forms(request, formset)
+        formset.set_total_via_init()
 
         context = dict(subject_formset=formset)
         return render(request, self.template, context)
@@ -182,9 +182,11 @@ class SubjectConflictView(View):
         self.row_data = request.session.pop("row_data", None)
         if self.row_data is None:
             raise Http404('')
+        request.session['row_data'] = self.row_data
 
-        formset = self.SubjectFormSet(request.POST)
-        self.init_forms(request, formset)
+        init = self.init_forms()
+        formset = self.SubjectFormSet(request.POST, initial=init)
+        formset.set_total_via_init()
 
         if formset.is_valid():
             subj = list()
