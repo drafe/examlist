@@ -160,7 +160,7 @@ class SubjectFilterForm(forms.Form):
 
     def __init__(self, years, *args, **kwargs):
         super().__init__()
-        self.fields['semester'].choices = [(i, i + 1) for i in range(years * 2)]
+        self.fields['semester'].choices = [(i + 1, i + 1) for i in range(years * 2)]
 
     pass
 
