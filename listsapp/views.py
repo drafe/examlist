@@ -28,18 +28,7 @@ def logout_request(request):
     logout(request)
     return redirect('home')
 
-
-# class PlanBaseFormSet(BaseModelFormSet):
-#     def __init__(self, *args, **kwargs):
-#         self.extra = kwargs.pop('extra', self.extra)
-#         super(PlanBaseFormSet, self).__init__(*args, **kwargs)
-#         for form in self.forms:
-#             form.fields['id_subject'].lable = form.initial['id_subject']
-#             # form.fields['id_subject']
-#
-#     def clean(self):
-#         pass
-
+  
 class PlanBaseFormSet(BaseFormSet):
     def clean(self):
         pass
@@ -66,12 +55,12 @@ class PlanItemsCreateView(View):
         request.session['row_data'] = self.row_data
         subj = self.row_data.get('subjects')
         spec = self.row_data.get('specialty')
-        # init = [{'id_subject': Subject.objects.get(id=_)} for _ in subj]
         data = [_ + [AcademicPlan.EXAM] for _ in self.row_data.get('exam')] \
                + [_ + [AcademicPlan.QUIZ] for _ in self.row_data.get('quiz')] \
                + [_ + [AcademicPlan.M_QU] for _ in self.row_data.get('m_qu')]
         data = sorted(data, key=lambda x: x[0])
         init = [self.init_item(subj, e) for e in data]
+
         return init
 
     def get(self, request):
