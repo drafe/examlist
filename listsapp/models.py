@@ -23,7 +23,7 @@ class Faculty(models.Model):
 class Specialty(models.Model):
     id_degree = models.ForeignKey('Degree', on_delete=models.PROTECT)
     id_faculty = models.ForeignKey('Faculty', on_delete=models.PROTECT, default=1)
-    specialty = models.CharField(max_length=240)
+    specialty = models.CharField(max_length=240, unique=True)
 
     def __str__(self):
         return self.specialty

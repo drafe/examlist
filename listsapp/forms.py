@@ -34,10 +34,6 @@ class SubjectConflictSolve(forms.Form):
             self.base_fields['sub_likes'].choices = [(_[1].id, _[1]) for _ in sim]
         super(SubjectConflictSolve, self).__init__(*args, **kwargs)
 
-    def set_similar(self, sim: list):
-        self.fields['sub_likes'].choices = [(_[1].id, _[1]) for _ in sim]
-        # self.errors = None
-
     def clean(self):
         cleaned_data = super().clean()
         if cleaned_data['is_create']:
@@ -54,67 +50,106 @@ class SubjectConflictSolve(forms.Form):
                                                       'новую')})
 
 
-class PlanItemUpload(forms.ModelForm):
-    class Meta:
-        model = AcademicPlan
-        # fields = '__all__'
-        fields = ['semester', 'id_subject', 'h_lecture', 'h_laboratory', 'h_practice', 'control', 'id_specialty']
+class PlanItemUpload(forms.Form):
+    h_widget = forms.NumberInput(
+        attrs={
+            'class': HOURS_CLASS,
+            'type': "number",
+            'value': '0',
+            'min': '0',
+            'max': '9',
+        })
+    id_subject = forms.IntegerField(label='',
+                                    widget=forms.NumberInput(attrs={'type': "hidden"}))
+    semester = forms.IntegerField(label='',
+                                  widget=forms.NumberInput(attrs={
+                                      'class': HOURS_CLASS,
+                                      'type': "number",
+                                      'min': '1',
+                                      'max': AcademicPlan.MAX_SEMESTER
+                                  }))
+    # id_subject = forms.IntegerField(forms.TextInput(
+    #             attrs={
+    #                 'class': INPUT_CLASS,
+    #                 'type': "hidden",
+    #                 'value': existed_stub,
+    #             }))
+    subject = forms.CharField(label='', required=False, max_length=240, widget=forms.TextInput(
+        attrs={'class': SUBJECT_CLASS, 'disabled': True}))
+    h_lecture = forms.IntegerField(label='', widget=h_widget)
+    h_laboratory = forms.IntegerField(label='', widget=h_widget)
+    h_practice = forms.IntegerField(label='', widget=h_widget)
+    control = forms.ChoiceField(label='', choices=AcademicPlan.CONTROLS,
+                                widget=forms.Select(attrs={'class': HOURS_CLASS}))
 
-        labels = {
-            'semester': _(''),
-            'id_subject': _(''),
-            'h_laboratory': _(''),
-            'h_lecture': _(''),
-            'h_practice': _(''),
-            'control': _(''),
-        }
+    # def __init__(self, *args, **kwargs):
+    #     if kwargs.get('initial'):
+    #         subject = kwargs.get('initial').get('id_subject')
+    #         self.id_subject = subject
+    #         self.base_fields['subject'].value = subject.subject
+    #     super(PlanItemUpload, self).__init__(*args, **kwargs)
 
-        widgets = {
-            'semester': forms.NumberInput(
-                attrs={
-                    'class': HOURS_CLASS,
-                    'type': "number",
-                    'value': '1',
-                    'min': '1',
-                    'max': AcademicPlan.MAX_SEMESTER
-                }),
-            'h_laboratory': forms.NumberInput(
-                attrs={
-                    'class': HOURS_CLASS,
-                    'type': "number",
-                    'value': '0',
-                    'min': '0',
-                    'max': '9',
-                }),
-            'h_lecture': forms.NumberInput(
-                attrs={
-                    'class': HOURS_CLASS,
-                    'type': "number",
-                    'value': '0',
-                    'min': '0',
-                    'max': '9',
-                }),
-            'h_practice': forms.NumberInput(
-                attrs={
-                    'class': HOURS_CLASS,
-                    'type': "number",
-                    'value': '0',
-                    'min': '0',
-                    'max': '9',
-                }),
-            'control': forms.Select(attrs={'class': HOURS_CLASS}),
-            'id_specialty': forms.TextInput(
-                attrs={
-                    'class': INPUT_CLASS,
-                    'type': "hidden",
-                    'value': '1',
-                }),
-            'id_subject': forms.Select(
-                attrs={
-                    'class': SUBJECT_CLASS,
-                    # 'disabled': True,
-                }),
-        }
+    # class Meta:
+    #     existed_stub = Specialty.objects.all()[0]
+    #     model = AcademicPlan
+    #     # fields = '__all__'
+    #     fields = ['semester', 'id_subject', 'h_lecture', 'h_laboratory', 'h_practice', 'control', 'id_specialty']
+    #
+    #     labels = {
+    #         'semester': _(''),
+    #         'id_subject': _(''),
+    #         'h_laboratory': _(''),
+    #         'h_lecture': _(''),
+    #         'h_practice': _(''),
+    #         'control': _(''),
+    #     }
+    #
+    #     widgets = {
+    #         'semester': forms.NumberInput(
+    #             attrs={
+    #                 'class': HOURS_CLASS,
+    #                 'type': "number",
+    #                 'value': '1',
+    #                 'min': '1',
+    #                 'max': AcademicPlan.MAX_SEMESTER
+    #             }),
+    #         'h_laboratory': forms.NumberInput(
+    #             attrs={
+    #                 'class': HOURS_CLASS,
+    #                 'type': "number",
+    #                 'value': '0',
+    #                 'min': '0',
+    #                 'max': '9',
+    #             }),
+    #         'h_lecture': forms.NumberInput(
+    #             attrs={
+    #                 'class': HOURS_CLASS,
+    #                 'type': "number",
+    #                 'value': '0',
+    #                 'min': '0',
+    #                 'max': '9',
+    #             }),
+    #         'h_practice': forms.NumberInput(
+    #             attrs={
+    #                 'class': HOURS_CLASS,
+    #                 'type': "number",
+    #                 'value': '0',
+    #                 'min': '0',
+    #                 'max': '9',
+    #             }),
+    #         'control': forms.Select(attrs={'class': HOURS_CLASS}),
+    #         'id_specialty': forms.TextInput(
+    #             attrs={
+    #                 'class': INPUT_CLASS,
+    #                 'type': "hidden",
+    #                 'value': existed_stub,
+    #             }),
+    #         'id_subject': forms.TextInput(
+    #             attrs={
+    #                 'class': SUBJECT_CLASS,
+    #                 'disabled': True,
+    #             }),
+    #     }
 
 
 class SubjectFilterForm(forms.Form):
@@ -154,11 +189,11 @@ class UploadFileForm(forms.Form):
     page = forms.ChoiceField(label="Страница из файла", required=True,
                              widget=forms.Select(attrs={'class': SELECT_CLASS}))
 
-    def clear(self):
-        super(UploadFileForm, self).clear()
+    def clean(self):
+        super(UploadFileForm, self).clean()
         if Specialty.objects.filter(specialty=self.cleaned_data.get("specialty")):
-            raise ValidationError({'subject': _('Такая дисциплина уже существует. Измените название дисциплины '
-                                                'или свяжите с существующей')})
+            raise ValidationError({'specialty': _('Такая специальность уже существует. Измените название дисциплины '
+                                                  'или свяжите с существующей')})
 
     def set_page(self, page):
         self.fields['page'].choices = [(page, page), ]

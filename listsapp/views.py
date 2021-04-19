@@ -12,7 +12,7 @@ from django.views import View
 from django.views.generic import CreateView
 
 from .forms import UploadFileForm, SubjectFilterForm, SubjectFilterUserForm, PlanItemUpload, SubjectConflictSolve
-from .models import AcademicPlan, Specialty, Group, Rule, Subject
+from .models import AcademicPlan, Specialty, Group, Rule, Subject, Faculty, Degree
 
 from .functionality.upload import Parser, FuzzySubjectsComparison
 
@@ -29,24 +29,33 @@ def logout_request(request):
     return redirect('home')
 
 
-class PlanBaseFormSet(BaseModelFormSet):
-    def __init__(self, *args, **kwargs):
-        self.extra = kwargs.pop('extra', self.extra)
-        super(PlanBaseFormSet, self).__init__(*args, **kwargs)
-        for form in self.forms:
-            form.fields['id_subject'].disabled = True
+# class PlanBaseFormSet(BaseModelFormSet):
+#     def __init__(self, *args, **kwargs):
+#         self.extra = kwargs.pop('extra', self.extra)
+#         super(PlanBaseFormSet, self).__init__(*args, **kwargs)
+#         for form in self.forms:
+#             form.fields['id_subject'].lable = form.initial['id_subject']
+#             # form.fields['id_subject']
+#
+#     def clean(self):
+#         pass
+
+class PlanBaseFormSet(BaseFormSet):
+    def clean(self):
+        pass
 
 
 @method_decorator(login_required, name='dispatch')
 class PlanItemsCreateView(View):
     row_data = dict()
     template_name = 'upload_items.html'
-    PlanItemsFormSet = modelformset_factory(AcademicPlan, formset=PlanBaseFormSet, form=PlanItemUpload)
+    PlanItemsFormSet = formset_factory(PlanItemUpload, formset=PlanBaseFormSet)
 
     @staticmethod
-    def init_item(subj, item, spec_name):
-        return dict(id_subject=Subject.objects.get(id=subj[item[0]]),
-                    id_specialty=Specialty(specialty=spec_name),
+    def init_item(subj, item):
+        subject = Subject.objects.get(id=subj[item[0]])
+        return dict(id_subject=subj[item[0]],
+                    subject=subject.subject,
                     semester=item[1],
                     h_lecture=item[2],
                     h_laboratory=item[3],
@@ -62,8 +71,7 @@ class PlanItemsCreateView(View):
                + [_ + [AcademicPlan.QUIZ] for _ in self.row_data.get('quiz')] \
                + [_ + [AcademicPlan.M_QU] for _ in self.row_data.get('m_qu')]
         data = sorted(data, key=lambda x: x[0])
-        init = [self.init_item(subj, e, spec) for e in data]
-
+        init = [self.init_item(subj, e) for e in data]
         return init
 
     def get(self, request):
@@ -73,10 +81,9 @@ class PlanItemsCreateView(View):
             raise Http404('')
 
         init = self.init_forms(request)
-        formset = self.PlanItemsFormSet(
-            queryset=AcademicPlan.objects.none(),
-            initial=init,
-            extra=len(init))
+        formset = self.PlanItemsFormSet(initial=init)
+        formset.forms = formset.initial_forms
+
         return render(request, self.template_name, {'plan_formset': formset})
 
     def post(self, request):
@@ -84,22 +91,27 @@ class PlanItemsCreateView(View):
         if self.row_data is None:
             raise Http404('')
 
-        formset = self.PlanItemsFormSet(request.POST)
+        init = self.init_forms(request)
+        formset = self.PlanItemsFormSet(request.POST, initial=init)
         formset.forms = formset.initial_forms
         request.session['row_data'] = self.row_data
 
         if formset.is_valid():
-            # todo создать и перенаправить
-            spec = Specialty(id_faculty=self.row_data.get('faculty'), specialty=self.row_data.get('specialty'))
+            faculty = self.row_data.get('faculty')
+            degree = self.row_data.get('degree')
+            spec = Specialty(id_faculty_id=faculty, id_degree_id=degree, specialty=self.row_data.get('specialty'))
             spec.save()
             for form in formset:
-                form.fields['id_specialty'] = spec.id
-                form.save()
-
+                form.cleaned_data.pop('subject')
+                form.cleaned_data['id_specialty'] = spec
+                form.cleaned_data['id_subject_id'] = form.cleaned_data.pop('id_subject')
+                plan = AcademicPlan(**form.cleaned_data)
+                plan.save()
+            # formset.save()
             return redirect('home')
 
-        context = dict(subject_formset=formset)
-        return render(request, self.template, context)
+        context = dict(plan_formset=formset)
+        return render(request, self.template_name, context)
 
 
 class BaseSubjectFormSet(BaseFormSet):
@@ -136,47 +148,6 @@ class SubjectConflictView(View):
     def get(self, request):
         self.row_data = request.session.pop("row_data", None)
         if self.row_data is None:
-            # row_data = {
-            #     'subjects': ['Иностранный язык', 'История', 'Философия', 'Иностранный язык в профессиональной сфере',
-            #                  'Математика', 'Физика', 'Информатика и информационно-коммуникационные технологии',
-            #                  'Правоведение', 'Экономика', 'Дискретная математика',
-            #                  'Теория  вероятности, математическая статистика', 'Физическая  культура',
-            #                  'Русский язык и культура речи', 'Естественнонаучная картина мира', 'Психология',
-            #                  'Экология', 'Метрология, стандартизация и сертификация', 'Математическая логика',
-            #                  'История науки и техники / Культурология', 'Методика преподавания / Педагогика',
-            #                  'Социология и политология / Религиоведение', 'Операционные системы',
-            #                  'Электротехника, электроника и схемотехника', 'Базы данных', 'Сети и телекоммуникации',
-            #                  'Основы программирования', 'Безопасность жизнедеятельности', 'Основы охраны труда',
-            #                  'Курсовая работа по дисциплине "Базы данных"', 'Программирование', 'Web-программирование',
-            #                  'СУБД Oracle', 'Объектно-ориентированное программирование',
-            #                  'Современные информационные системы и технологии', 'Инженерная и компьютерная графика',
-            #                  'Архитектура ЭВМ и микроконтроллеров', 'ЭВМ и периферийные устройства',
-            #                  'Программирование на языках низкого уровня', 'Защита информации',
-            #                  'Методы и средства проектирования информационных систем и технологий',
-            #                  'Технологии разработки программного обеспечения',
-            #                  'Тестирование и внедрение программного обеспечения',
-            #                  'Курсовая работа по дисциплине "Программирование"',
-            #                  'Курсовая работа по дисциплине "Web-программирование"',
-            #                  'Программирование в системе "1С: Предприятие" / Администрирование системы "1С: Предприятие" / Компьютерный дизайн',
-            #                  'Вычислительная математика  / Численные методы /Вычислительные методы',
-            #                  'Программирование робототехнических систем / Администрирование операционных систем /  Программные средства обработки графической информации',
-            #                  'Интернет-технологии /  Аппаратные средства локальных сетей / Web-дизайн',
-            #                  'Программирование в Unix / Администрирование распределённых систем / Компьютерная анимация и видео'],
-            #     'exam': [[0, 2, 0, 3, 0], [1, 1, 2, 0, 1], [2, 4, 1, 0, 1], [3, 4, 0, 0, 2], [4, 1, 3, 0, 3],
-            #              [4, 2, 3, 0, 3], [5, 1, 2, 2, 0], [5, 2, 2, 2, 0], [6, 1, 1, 2, 0], [9, 2, 1, 0, 2],
-            #              [10, 3, 1, 0, 2], [12, 2, 1, 0, 2], [12, 3, 1, 0, 2], [21, 5, 2, 2, 0], [21, 6, 1, 3, 0],
-            #              [22, 3, 1, 2, 0], [22, 4, 1, 2, 0], [23, 5, 2, 2, 0], [24, 5, 2, 2, 0], [24, 6, 2, 2, 0],
-            #              [25, 1, 2, 2, 0], [26, 3, 2, 0, 0], [27, 4, 1, 0, 1], [29, 3, 2, 2, 0], [29, 4, 2, 2, 0],
-            #              [30, 6, 2, 2, 0], [32, 8, 1, 2, 0], [33, 7, 2, 2, 0], [33, 8, 2, 2, 0], [36, 4, 2, 2, 0],
-            #              [39, 7, 2, 2, 0], [44, 8, 2, 4, 0], [45, 5, 2, 2, 0], [46, 6, 2, 2, 0], [47, 7, 2, 4, 0],
-            #              [48, 8, 2, 2, 0]],
-            #     'quiz': [[0, 1, 0, 2, 0], [3, 3, 0, 0, 1], [6, 2, 2, 2, 0], [7, 6, 1, 0, 2], [8, 7, 1, 0, 2],
-            #              [11, 1, 2, 0, 0], [12, 1, 1, 0, 2], [13, 1, 2, 0, 0], [14, 2, 1, 0, 2], [15, 5, 1, 0, 2],
-            #              [16, 7, 1, 0, 1], [17, 4, 1, 0, 2], [18, 3, 1, 0, 2], [19, 6, 1, 0, 2], [20, 5, 1, 0, 1],
-            #              [23, 4, 2, 2, 0], [25, 2, 2, 2, 0], [30, 5, 1, 2, 0], [31, 8, 2, 2, 0], [32, 7, 2, 2, 0],
-            #              [35, 3, 2, 2, 0], [37, 5, 1, 2, 0], [38, 7, 1, 0, 2], [40, 3, 1, 2, 0], [41, 6, 1, 2, 0],
-            #              [46, 5, 1, 1, 0], [48, 7, 1, 2, 0]],
-            #     'm_qu': [[34, 3, 2, 2, 0], [34, 4, 1, 2, 0]]}
             raise Http404('')
         request.session['row_data'] = self.row_data
 
@@ -228,6 +199,7 @@ def upload_file(request):
             row_data = Parser(file, page, rule).parse()
             row_data['specialty'] = upload_form.cleaned_data['specialty']
             row_data['faculty'] = upload_form.cleaned_data['faculty'].id
+            row_data['degree'] = upload_form.cleaned_data['degree'].id
 
             # context = {'upload_items': [PlanItemUpload() for i in range(3)]}
             request.session['row_data'] = row_data
