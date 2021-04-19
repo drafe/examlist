@@ -64,9 +64,9 @@ class Parser:
     @staticmethod
     def __is_subject(row: list, ciph, ciphers, subj, sem_exam, sem_quiz):
         return row[ciph].split('.', 1)[0] in ciphers \
-               and (row[subj] not in ('0', '')) \
-               and (row[sem_exam] not in ('0', '')) \
-               and (row[sem_quiz] not in ('0', ''))
+               and ((row[subj] not in ('0', '', 'None', None)) \
+               and ((row[sem_exam] not in ('0', '', 'None', None)) \
+               or (row[sem_quiz] not in ('0', '', 'None', None))))
 
     def __clear_data(self):
         """ Очищает данные, готовит словарь вида
@@ -133,10 +133,10 @@ class FuzzySubjectsComparison:
         self.current = Subject.objects.all()
 
     def compareAll(self):
-        d = {i: sorted(list(filter(lambda x: x[0] > 0, [(self.getFuzzyEqualValue(i, j.subject), j) for j in self.current])),
-                          key=lambda x: x[0], reverse=False)
-             for i in self.compare}
-        return {_: d[_] if len(d[_]) > 0 else [False, ] for _ in d}
+        d = [sorted(list(filter(lambda x: x[0] > 0, [(self.getFuzzyEqualValue(i, j.subject), j) for j in self.current])),
+                    key=lambda x: x[0], reverse=True)
+             for i in self.compare]
+        return d
 
     @staticmethod
     def normal(s: str):

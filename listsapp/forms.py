@@ -2,8 +2,10 @@ from datetime import date
 
 from django import forms
 from django.contrib.auth import get_user_model
+from django.core.exceptions import ValidationError
+from django.utils.translation import gettext_lazy as _
 
-from listsapp.models import Degree, Rule, Faculty, Specialty, AcademicPlan
+from listsapp.models import Degree, Rule, Faculty, Specialty, AcademicPlan, Subject
 
 User = get_user_model()
 
@@ -16,64 +18,79 @@ CHECK_CLASS = """disabled:opacity-50 mt-1 mr-3 py-2 px-3 focus:ring-indigo-500 f
 
 
 class SubjectConflictSolve(forms.Form):
-    CHOICE = [(True, 'Да'), (False, 'Нет')]
-
-    subject = forms.CharField(label='', max_length=240,
-                              widget=forms.TextInput(attrs={'class': INPUT_CLASS}))
-    is_create = forms.ChoiceField(label='', label_suffix='', choices=CHOICE,
-                                  widget=forms.Select(attrs={'class': CHECK_CLASS}))
-    sub_likes = forms.ChoiceField(label="", widget=forms.Select(attrs={'class': SELECT_CLASS}))
-
-    def set_similar(self, sim: list):
-        self.fields['sub_likes'].choices = [(_[1].id, _[1]) if sim[0] else ('0', 'Нет') for _ in sim ]
-
-
-class PlanItemUpload(forms.Form):
-    semester = forms.IntegerField(label='',
-                                  widget=forms.NumberInput(
-                                      attrs={
-                                          'class': INPUT_CLASS,
-                                          'type': "number",
-                                          'value': '1',
-                                          'min': '1',
-                                          'max': AcademicPlan.MAX_SEMESTER
-                                      }))
     subject = forms.CharField(label='', max_length=240,
                               widget=forms.TextInput(attrs={'class': INPUT_CLASS}))
     is_create = forms.BooleanField(label='', required=False,
                                    widget=forms.CheckboxInput(attrs={'class': CHECK_CLASS}))
-    sub_likes = forms.ChoiceField(label="", widget=forms.Select(attrs={'class': SELECT_CLASS, 'required': False}))
-    h_lec = forms.IntegerField(label='',
-                               widget=forms.NumberInput(
-                                   attrs={
-                                          'class': INPUT_CLASS,
-                                          'type': "number",
-                                          'value': '0',
-                                          'min': '0',
-                                      }))
-    h_lab = forms.IntegerField(label='',
-                               widget=forms.NumberInput(
-                                   attrs={
-                                       'class': INPUT_CLASS,
-                                       'type': "number",
-                                       'value': '0',
-                                       'min': '0',
-                                   }))
-    h_prac = forms.IntegerField(label='',
-                                widget=forms.NumberInput(
-                                   attrs={
-                                       'class': INPUT_CLASS,
-                                       'type': "number",
-                                       'value': '0',
-                                       'min': '0',
-                                   }))
-    control = forms.ChoiceField(label="",
-                                choices=AcademicPlan.CONTROLS,
-                                widget=forms.Select(attrs={'class': SELECT_CLASS}))
+    sub_likes = forms.ChoiceField(label="", required=False, widget=forms.Select(attrs={'class': SELECT_CLASS}))
 
     def set_similar(self, sim: list):
         self.fields['sub_likes'].choices = [(_[1].id, _[1]) for _ in sim]
-        pass
+        # self.errors = None
+
+    def clean(self):
+        cleaned_data = super().clean()
+        if cleaned_data['is_create']:
+            if not cleaned_data.get('subject'):
+                raise ValidationError({'subject': _('Нельзя создать дисциплину без названия')})
+
+            if Subject.objects.filter(subject=self.cleaned_data.get("subject")):
+                raise ValidationError({'subject': _('Такая дисциплина уже существует. Измените название дисциплины '
+                                                    'или свяжите с существующей')})
+
+        else:
+            if not cleaned_data.get("sub_likes"):
+                raise ValidationError({'sub_likes': _('Нельзя связать ни с какой дисциплиной. Пожалуйста, добавьте '
+                                                      'новую')})
+
+
+class PlanItemUpload(forms.ModelForm):
+    class Meta:
+        model = AcademicPlan
+        fields = '__all__'
+
+        widgets = {
+            'semester': forms.NumberInput(
+                attrs={
+                    'class': INPUT_CLASS,
+                    'type': "number",
+                    'value': '1',
+                    'min': '1',
+                    'max': AcademicPlan.MAX_SEMESTER
+                }),
+            'subject': forms.TextInput(attrs={'class': INPUT_CLASS, 'read-only': True}),
+            'h_laboratory': forms.NumberInput(
+                attrs={
+                    'class': INPUT_CLASS,
+                    'type': "number",
+                    'value': '0',
+                    'min': '0',
+                    'max': '9',
+                }),
+            'h_lecture': forms.NumberInput(
+                attrs={
+                    'class': INPUT_CLASS,
+                    'type': "number",
+                    'value': '0',
+                    'min': '0',
+                    'max': '9',
+                }),
+            'h_practice': forms.NumberInput(
+                attrs={
+                    'class': INPUT_CLASS,
+                    'type': "number",
+                    'value': '0',
+                    'min': '0',
+                    'max': '9',
+                }),
+            'control': forms.Select(attrs={'class': SELECT_CLASS}),
+            'id_specialty': forms.TextInput(
+                attrs={
+                    'class': INPUT_CLASS,
+                    'type': "hidden",
+                    'value': '1',
+                }),
+        }
 
 
 class SubjectFilterForm(forms.Form):
@@ -84,7 +101,8 @@ class SubjectFilterForm(forms.Form):
 
     def __init__(self, years, *args, **kwargs):
         super().__init__()
-        self.fields['semester'].choices = [(i, i+1) for i in range(years*2)]
+        self.fields['semester'].choices = [(i, i + 1) for i in range(years * 2)]
+
     pass
 
 
@@ -109,7 +127,14 @@ class UploadFileForm(forms.Form):
                                     widget=forms.Select(attrs={'class': SELECT_CLASS}))
     rule = forms.ModelChoiceField(label="Правило для файла", queryset=Rule.objects.all(),
                                   widget=forms.Select(attrs={'class': SELECT_CLASS}))
-    page = forms.ChoiceField(label="Страница из файла", required=True, widget=forms.Select(attrs={'class': SELECT_CLASS}))
+    page = forms.ChoiceField(label="Страница из файла", required=True,
+                             widget=forms.Select(attrs={'class': SELECT_CLASS}))
+
+    def clear(self):
+        super(UploadFileForm, self).clear()
+        if Specialty.objects.filter(specialty=self.cleaned_data.get("specialty")):
+            raise ValidationError({'subject': _('Такая дисциплина уже существует. Измените название дисциплины '
+                                                'или свяжите с существующей')})
 
     def set_page(self, page):
         self.fields['page'].choices = [(page, page), ]
