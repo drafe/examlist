@@ -1,0 +1,25 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block content %}
+<div class="max-w-screen-lg body-font container mx-auto ">
+    <h1 class="mt-12 font-normal text-lg">Рассчет академисческой разницы</h1>
+    <form class="mt-10" method="get" >
+        {% csrf_token %}
+        <div class=" flex flex-nowrap flex-column items-center justify-between">
+            <div class="inline-flex flex-nowrap flex-column">
+                <div class="rounded border p-4 mr-5 text-gray-800">
+                    <h2 class="mt-1.5 pb-1 mb-4 text-gray-900 border-b uppercase tracking-wide">Текущая специальность</h2>
+                    {{ from_specialty }}
+                </div>
+                <div class="rounded border p-4 text-gray-800">
+                    <h2 class="mt-1.5 pb-1 mb-4 text-gray-900 border-b uppercase tracking-wide">Будущая специальность</h2>
+                    {{ to_specialty }}
+                </div>
+            </div>
+            <button class="w-1/6 my-9 px-3 pt-1 pb-2 font-semibold rounded border-2 button-deepblue tracking-wide inline-flex justify-center link-home-hover" type="submit">Рассчитать</button>
+        </div>
+    </form>
+
+</div>
+{% endblock content %}

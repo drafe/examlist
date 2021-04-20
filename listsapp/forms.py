@@ -68,12 +68,6 @@ class PlanItemUpload(forms.Form):
                                       'min': '1',
                                       'max': AcademicPlan.MAX_SEMESTER
                                   }))
-    # id_subject = forms.IntegerField(forms.TextInput(
-    #             attrs={
-    #                 'class': INPUT_CLASS,
-    #                 'type': "hidden",
-    #                 'value': existed_stub,
-    #             }))
     subject = forms.CharField(label='', required=False, max_length=240, widget=forms.TextInput(
         attrs={'class': SUBJECT_CLASS, 'disabled': True}))
     h_lecture = forms.IntegerField(label='', widget=h_widget)
@@ -158,7 +152,7 @@ class SubjectFilterForm(forms.Form):
                                        widget=forms.Select(attrs={'class': SELECT_CLASS}))
     semester = forms.ChoiceField(label="Семестр", widget=forms.Select(attrs={'class': SELECT_CLASS}))
 
-    def __init__(self, years, *args, **kwargs):
+    def __init__(self, *args, years, **kwargs):
         super().__init__()
         self.fields['semester'].choices = [(i + 1, i + 1) for i in range(years * 2)]
 
@@ -170,7 +164,7 @@ class SubjectFilterUserForm(SubjectFilterForm):
         attrs={'class': INPUT_CLASS, 'type': "number", 'value': date.today().year}))
 
     def __init__(self, *args, **kwargs):
-        super().__init__(years=0)
+        super().__init__(*args, **kwargs, years=0)
         self.fields['semester'].choices = [(0, 'Осень'), (1, 'Весна')]
 
 

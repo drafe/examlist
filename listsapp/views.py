@@ -1,20 +1,20 @@
-from functools import reduce
-
 from django.contrib.auth import logout
 from django.contrib.auth.decorators import login_required
 from django.core.exceptions import ValidationError
 from django.db.models import Count
-from django.forms import formset_factory, BaseFormSet, modelformset_factory, BaseModelFormSet
-from django.http import Http404, HttpResponse
+from django.forms import formset_factory, BaseFormSet
+from django.http import Http404
 from django.shortcuts import render, redirect
 from django.utils.decorators import method_decorator
 from django.views import View
-from django.views.generic import CreateView
+from django.views.generic import ListView
+from django.views.generic.edit import FormMixin
 
 from .forms import UploadFileForm, SubjectFilterForm, SubjectFilterUserForm, PlanItemUpload, SubjectConflictSolve
-from .models import AcademicPlan, Specialty, Group, Rule, Subject, Faculty, Degree
+from .functionality.comparison import FuzzySubjectsComparison
+from .functionality.parser import Parser
 
-from .functionality.upload import Parser, FuzzySubjectsComparison
+from .models import AcademicPlan, Specialty, Group, Subject
 
 
 # Create your views here.
@@ -29,27 +29,11 @@ def logout_request(request):
     return redirect('home')
 
 
-# class PlanBaseFormSet(BaseModelFormSet):
-#     def __init__(self, *args, **kwargs):
-#         self.extra = kwargs.pop('extra', self.extra)
-#         super(PlanBaseFormSet, self).__init__(*args, **kwargs)
-#         for form in self.forms:
-#             form.fields['id_subject'].lable = form.initial['id_subject']
-#             # form.fields['id_subject']
-#
-#     def clean(self):
-#         pass
-
-class PlanBaseFormSet(BaseFormSet):
-    def clean(self):
-        pass
-
-
 @method_decorator(login_required, name='dispatch')
 class PlanItemsCreateView(View):
     row_data = dict()
     template_name = 'upload_items.html'
-    PlanItemsFormSet = formset_factory(PlanItemUpload, formset=PlanBaseFormSet)
+    PlanItemsFormSet = formset_factory(PlanItemUpload)
 
     @staticmethod
     def init_item(subj, item):
@@ -65,11 +49,9 @@ class PlanItemsCreateView(View):
     def init_forms(self, request):
         request.session['row_data'] = self.row_data
         subj = self.row_data.get('subjects')
-        spec = self.row_data.get('specialty')
-        # init = [{'id_subject': Subject.objects.get(id=_)} for _ in subj]
-        data = [_ + [AcademicPlan.EXAM] for _ in self.row_data.get('exam')] \
-               + [_ + [AcademicPlan.QUIZ] for _ in self.row_data.get('quiz')] \
-               + [_ + [AcademicPlan.M_QU] for _ in self.row_data.get('m_qu')]
+        data = [_ + [AcademicPlan.EXAM] for _ in self.row_data.get('exam')] + \
+               [_ + [AcademicPlan.QUIZ] for _ in self.row_data.get('quiz')] + \
+               [_ + [AcademicPlan.M_QU] for _ in self.row_data.get('m_qu')]
         data = sorted(data, key=lambda x: x[0])
         init = [self.init_item(subj, e) for e in data]
         return init
@@ -107,7 +89,6 @@ class PlanItemsCreateView(View):
                 form.cleaned_data['id_subject_id'] = form.cleaned_data.pop('id_subject')
                 plan = AcademicPlan(**form.cleaned_data)
                 plan.save()
-            # formset.save()
             return redirect('home')
 
         context = dict(plan_formset=formset)
@@ -201,7 +182,6 @@ def upload_file(request):
             row_data['faculty'] = upload_form.cleaned_data['faculty'].id
             row_data['degree'] = upload_form.cleaned_data['degree'].id
 
-            # context = {'upload_items': [PlanItemUpload() for i in range(3)]}
             request.session['row_data'] = row_data
             request.session['key'] = True
             return redirect('upload_conflicts')
@@ -216,7 +196,7 @@ def subjects_filter(request):
         sp = request.GET.get('specialty')
         sem = request.GET.get('semester')
     except:
-        qs = None
+        return None
     else:
         qs = AcademicPlan.objects.select_related('id_specialty', 'id_subject').all()
         qs = qs.filter(id_specialty=sp).filter(semester=sem).order_by('control')
@@ -229,11 +209,11 @@ def subjects_filter(request):
 
 def subjects_user_filter(request):
     try:
-        spec = int(request.GET.get('specialty'))
-        sem = int(request.GET.get('semester'))
-        year = int(request.GET.get('year'))
+        spec = int(request.GET['specialty'])
+        sem = int(request.GET['semester'])
+        year = int(request.GET['year'])
     except:
-        qs = None
+        return None
     else:
         semesters = [i for i in range(1, AcademicPlan.MAX_SEMESTER + 1) if i % 2 != sem]
         gr = Group.objects.select_related('id_specialty') \
@@ -269,7 +249,7 @@ def subjects_user_filter(request):
         return context
 
 
-def SubjectsFilterView(request):
+def subjects_filter_list(request):
     context = {}
     if request.GET:
         if request.user.is_authenticated:
@@ -283,3 +263,16 @@ def SubjectsFilterView(request):
     else:
         context['filter_form'] = SubjectFilterForm(years=4)
         return render(request, "subjects.html", context)
+
+
+def academ_difference_list(request):
+    context = dict(from_specialty=SubjectFilterForm(years=4),
+                   to_specialty=SubjectFilterForm(years=4))
+
+    if request.GET:
+        difference_info = None
+        context = dict(from_specialty=SubjectFilterForm(request.GET, years=4),
+                       to_specialty=SubjectFilterForm(request.GET, years=4),
+                       difference=difference_info)
+
+    return render(request, 'academ_ask.html', context)

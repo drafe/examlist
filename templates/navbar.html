@@ -8,7 +8,7 @@
         </a>
         <nav class="ml-auto flex flex-wrap items-center justify-end text-sm">
             <a href="{% url 'subjects' %}" class="mr-5 lowercase hover:text-gray-400">Дисциплины</a>
-            <a href="#" class="mr-5 lowercase hover:text-gray-400">Академ. разница</a>
+            <a href="{% url 'academ' %}" class="mr-5 lowercase hover:text-gray-400">Академ. разница</a>
             {% if request.user.is_authenticated %}
                 <a href="{% url 'upload' %}" class="mr-5 lowercase hover:text-gray-400">Импортировать</a>
                 <a href="#" class="mr-5 lowercase hover:text-gray-400">Редактировать</a>

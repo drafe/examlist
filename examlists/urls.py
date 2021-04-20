@@ -17,7 +17,9 @@ from django.conf import settings
 from django.conf.urls.static import static
 from django.contrib import admin
 from django.urls import path
-from listsapp.views import home, upload_file, SubjectsFilterView, SubjectConflictView, PlanItemsCreateView
+from listsapp.views import (
+    home, upload_file, subjects_filter_list, academ_difference_list, SubjectConflictView, PlanItemsCreateView
+)
 from django.contrib.auth.views import LoginView, LogoutView
 
 urlpatterns = [
@@ -28,9 +30,8 @@ urlpatterns = [
     path('upload/', upload_file, name='upload'),
     path('upload/items/', PlanItemsCreateView.as_view(), name='upload_items'),
     path('upload/conflicts/', SubjectConflictView.as_view(), name='upload_conflicts'),
-
-    path('subjects/', SubjectsFilterView, name='subjects'),
-
+    path('subjects/', subjects_filter_list, name='subjects'),
+    path('academ/', academ_difference_list, name='academ'),
 ]
 
 if settings.DEBUG:

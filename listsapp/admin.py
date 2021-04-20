@@ -9,6 +9,7 @@ class DegreeAdmin(admin.ModelAdmin):
 
 class SpecialtyAdmin(admin.ModelAdmin):
     list_display = ['specialty', 'id_faculty', 'id_degree']
+    list_filter = ['id_faculty', ]
 
 
 class SubjectAdmin(admin.ModelAdmin):
@@ -18,10 +19,12 @@ class SubjectAdmin(admin.ModelAdmin):
 class AcademicAdmin(admin.ModelAdmin):
     list_display = ['semester', 'control', 'id_specialty', 'id_subject',
                     'h_laboratory', 'h_lecture', 'h_practice']
+    list_filter = ['id_specialty', 'semester', 'control', ]
 
 
 class GroupAdmin(admin.ModelAdmin):
     list_display = ['enter_year', 'id_specialty', 'name']
+    list_filter = ['id_specialty', ]
 
 
 class RuleAdmin(admin.ModelAdmin):
