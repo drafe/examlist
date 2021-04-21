@@ -153,7 +153,7 @@ class SubjectFilterForm(forms.Form):
     semester = forms.ChoiceField(label="Семестр", widget=forms.Select(attrs={'class': SELECT_CLASS}))
 
     def __init__(self, *args, years, **kwargs):
-        super().__init__()
+        super().__init__(*args, **kwargs)
         self.fields['semester'].choices = [(i + 1, i + 1) for i in range(years * 2)]
 
     pass

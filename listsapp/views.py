@@ -11,7 +11,7 @@ from django.views.generic import ListView
 from django.views.generic.edit import FormMixin
 
 from .forms import UploadFileForm, SubjectFilterForm, SubjectFilterUserForm, PlanItemUpload, SubjectConflictSolve
-from .functionality.comparison import FuzzySubjectsComparison
+from .functionality.comparison import FuzzySubjectsComparison, AcademicDifferenceComparison
 from .functionality.parser import Parser
 
 from .models import AcademicPlan, Specialty, Group, Subject
@@ -266,13 +266,24 @@ def subjects_filter_list(request):
 
 
 def academ_difference_list(request):
-    context = dict(from_specialty=SubjectFilterForm(years=4),
-                   to_specialty=SubjectFilterForm(years=4))
+    context = dict(from_specialty=SubjectFilterForm(prefix='from', years=4),
+                   to_specialty=SubjectFilterForm(prefix='to', years=4))
 
     if request.GET:
-        difference_info = None
-        context = dict(from_specialty=SubjectFilterForm(request.GET, years=4),
-                       to_specialty=SubjectFilterForm(request.GET, years=4),
-                       difference=difference_info)
+        from_specialty = SubjectFilterForm(request.GET, prefix='from', years=4)
+        to_specialty = SubjectFilterForm(request.GET, prefix='to', years=4)
+        if from_specialty.is_valid() and to_specialty.is_valid():
+            title = f"{from_specialty.cleaned_data['specialty']} ({from_specialty.cleaned_data['semester']} семестр) -> " \
+                    f"{to_specialty.cleaned_data['specialty']} ({to_specialty.cleaned_data['semester']} семестр) "
+            difference_info = AcademicDifferenceComparison(
+                from_specialty=from_specialty.cleaned_data['specialty'],
+                from_semester=from_specialty.cleaned_data['semester'],
+                to_specialty=to_specialty.cleaned_data['specialty'],
+                to_semester=to_specialty.cleaned_data['semester']
+            ).compare()
+            context = dict(from_specialty=from_specialty,
+                           to_specialty=to_specialty,
+                           difference=difference_info,
+                           title=title)
 
     return render(request, 'academ_ask.html', context)

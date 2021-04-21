@@ -1,4 +1,6 @@
-from listsapp.models import Subject
+from django.db.models import QuerySet
+
+from listsapp.models import Subject, AcademicPlan
 
 
 class FuzzySubjectsComparison:
@@ -22,9 +24,10 @@ class FuzzySubjectsComparison:
         self.current = Subject.objects.all()
 
     def compareAll(self):
-        d = [sorted(list(filter(lambda x: x[0] > 0, [(self.getFuzzyEqualValue(i, j.subject), j) for j in self.current])),
-                    key=lambda x: x[0], reverse=True)
-             for i in self.compare]
+        d = [
+            sorted(list(filter(lambda x: x[0] > 0, [(self.getFuzzyEqualValue(i, j.subject), j) for j in self.current])),
+                   key=lambda x: x[0], reverse=True)
+            for i in self.compare]
         return d
 
     @staticmethod
@@ -61,13 +64,13 @@ class FuzzySubjectsComparison:
 
     @staticmethod
     def getFuzzyEqualValue(first: str, second: str):
-        if not first and not second:
+        f = FuzzySubjectsComparison
+        if (not first and not second) or (f.normal(first) == f.normal(second)):
             return 1.0
 
         if not first or not second:
             return 0.0
 
-        f = FuzzySubjectsComparison
         equalWords = 0
         first_words = f.words(first)
         second_words = f.words(second)
@@ -84,26 +87,49 @@ class FuzzySubjectsComparison:
         return equalWords / (len(first_words) + len(second_words) - equalWords)
 
 
-class AcademDifferenceComparison:
-    result = list()
+class AcademicDifferenceComparison:
+    THRESHOLD_SENSITIVITY = 0.3
 
-    def __init__(self, from_subjects, to_subjects):
-        self._from = from_subjects
-        self._to = to_subjects
-
-    def find_same(self):
-        # todo ищет одинаковые предметы (по id)
-        #  если контроль и часы(текущие>=будущие) одинаковые - 100% перезачтут
-        #  контроль одинаковый, а часов прочитано - нет, то  1-(будущие-текущие)/будущие * 100%
-        #  контроль разный, но часы (текущие>=будущие) - 0,5-
-
-        pass
-
-    def pair_list_compare(self):
-        pass
+    def __init__(self, from_specialty, from_semester, to_specialty, to_semester):
+        _from = AcademicPlan.objects.select_related('id_subject').filter(
+            id_specialty=from_specialty, semester__lte=from_semester)
+        _to = AcademicPlan.objects.select_related('id_subject').filter(
+            id_specialty=to_specialty, semester__lte=to_semester)
+        self._to_same = _to.filter(id_subject__in=_from.values('id_subject')).order_by('id_subject')
+        self._from_same = _from.filter(id_subject__in=_to.values('id_subject')).order_by('id_subject')
+        self._from_diff = _from.exclude(id__in=self._from_same)
+        self._to_diff = _to.exclude(id__in=self._to_same)
 
     def compare(self):
-        return None
+        def hours(plan: AcademicPlan):
+            return plan.h_practice + plan.h_lecture + plan.h_laboratory
+
+        compare_same = [dict(is_differ=False, academic=t)
+                        if hours(f) - hours(t) > -1 else
+                        dict(is_differ=True, academic=t)
+                        for f, t in zip(self._from_same, self._to_same)]
+
+        f = FuzzySubjectsComparison
+
+        d = [sorted(
+                list(
+                    filter(
+                        lambda x: x[0] > self.THRESHOLD_SENSITIVITY,
+                        [(f.getFuzzyEqualValue(i.id_subject.subject, j.id_subject.subject), j)
+                         for j in self._from_diff]
+                    )
+                ),
+            key=lambda x: x[0], reverse=True)
+            for i in self._to_diff]
+
+        compare_diff = [
+            dict(is_differ=False, academic=t)
+            if len(f) and hours(f[0][1]) - hours(t) > -1 else
+            dict(is_differ=True, academic=t)
+            for f, t in zip(d, self._to_diff)
+        ]
+
+        return compare_same + compare_diff
 
 
 if '__name__' == '__main__':

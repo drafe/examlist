@@ -1,5 +1,4 @@
 
-
 xl_file = document.getElementById('id_upload-file')
 
 xl_file.addEventListener('change', ()=>{
@@ -16,3 +15,11 @@ xl_file.addEventListener('change', ()=>{
 
     console.log(url)
 })
+
+function copytable(el) {
+    var urlField = document.getElementById(el)
+    var range = document.createRange()
+    range.selectNode(urlField)
+    window.getSelection().addRange(range)
+    document.execCommand('copy')
+}
