@@ -5,7 +5,7 @@ from django.contrib.auth import get_user_model
 from django.core.exceptions import ValidationError
 from django.utils.translation import gettext_lazy as _
 
-from listsapp.models import Degree, Rule, Faculty, Specialty, AcademicPlan, Subject
+from listsapp.models import Degree, Rule, Faculty, Specialty, AcademicPlan, Subject, AdminMessage
 
 User = get_user_model()
 
@@ -19,6 +19,27 @@ HOURS_CLASS = """disabled:opacity-50 mt-0.5 mx-1.5 py-1.5 px-2 focus:ring-indigo
                 w-3/12 shadow-sm sm:text-sm border border-gray-300 rounded-md """
 SUBJECT_CLASS = """disabled:opacity-50 mt-0.5 mx-1.5 py-1.5 px-2 focus:ring-indigo-500 focus:border-indigo-500 block 
                 w-full shadow-sm sm:text-sm border border-gray-300 rounded-md """
+
+
+class SendMessageForm(forms.ModelForm):
+    class Meta:
+        model = AdminMessage
+        fields = "__all__"
+        exclude = ['is_solve', 'user']
+
+        widgets = {
+            'topic': forms.TextInput(attrs={'class': INPUT_CLASS}),
+            'mail': forms.TextInput(attrs={'class': INPUT_CLASS}),
+            'text': forms.Textarea(attrs={'class': INPUT_CLASS}),
+        }
+        labels = {
+            'topic': 'Тема',
+            'mail': 'Адрес эл. почты',
+            'text': 'Текст сообщения',
+        }
+
+    def send_email(self):
+        pass
 
 
 class SubjectConflictSolve(forms.Form):

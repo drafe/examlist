@@ -1,20 +1,23 @@
+from django.contrib import messages
 from django.contrib.auth import logout
 from django.contrib.auth.decorators import login_required
 from django.core.exceptions import ValidationError
 from django.db.models import Count
-from django.forms import formset_factory, BaseFormSet
+from django.forms import formset_factory, BaseFormSet, forms
 from django.http import Http404
 from django.shortcuts import render, redirect
+from django.urls import reverse
 from django.utils.decorators import method_decorator
 from django.views import View
 from django.views.generic import ListView
-from django.views.generic.edit import FormMixin
+from django.views.generic.edit import FormMixin, CreateView, FormView
 
-from .forms import UploadFileForm, SubjectFilterForm, SubjectFilterUserForm, PlanItemUpload, SubjectConflictSolve
+from .forms import UploadFileForm, SubjectFilterForm, SubjectFilterUserForm, PlanItemUpload, SubjectConflictSolve, \
+    INPUT_CLASS, SendMessageForm
 from .functionality.comparison import FuzzySubjectsComparison, AcademicDifferenceComparison
 from .functionality.parser import Parser
 
-from .models import AcademicPlan, Specialty, Group, Subject
+from .models import AcademicPlan, Specialty, Group, Subject, AdminMessage
 
 
 # Create your views here.
@@ -27,6 +30,21 @@ def home(request):
 def logout_request(request):
     logout(request)
     return redirect('home')
+
+
+class SendMessageView(FormView):
+    template_name = 'message-to-admin.html'
+    form_class = SendMessageForm
+
+    def get_success_url(self):
+        return reverse('home')
+
+    def form_valid(self, form):
+        message = form.save(commit=False)
+        message.user = self.request.user or None
+        message.save()
+        messages.success(self.request, "Ваше сообщение отправлено")
+        return super(SendMessageView, self).form_valid(form)
 
 
 @method_decorator(login_required, name='dispatch')

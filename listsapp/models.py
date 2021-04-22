@@ -1,7 +1,9 @@
 from django.core.exceptions import ValidationError
 from django.db import models
-from django.contrib.auth.models import AbstractUser
+from django.contrib.auth.models import AbstractUser, User
 from django.utils.translation import gettext_lazy as _
+from django.db.models.signals import post_save
+from django.dispatch import receiver
 
 from schema import Schema, And, Use
 
@@ -118,3 +120,12 @@ class Rule(models.Model):
     def clean(self):
         if self.RULE_SCHEMA.validate(self.rule):
             raise ValidationError({'rule': _(self.JSON_FORMAT_ERROR)})
+
+
+class AdminMessage(models.Model):
+    topic = models.CharField(max_length=120)
+    mail = models.EmailField()
+    text = models.TextField()
+    user = models.ForeignKey(User, null=True, on_delete=models.CASCADE)
+    is_solve = models.BooleanField(default=False)
+

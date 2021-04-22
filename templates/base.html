@@ -14,10 +14,13 @@
 {#     <script src="https://code.jquery.com/jquery-1.12.4.js"></script>#}
     <script lang="javascript" src="{% static 'js/main.js' %}"></script>
 </head>
-<body>
+<body class="flex flex-col min-h-screen ">
     {% include 'navbar.html' %}
+<main  class="flex-1 ">
+{% include 'messages.html' %}
     {% block content %}
     {% endblock content %}
-
+</main>
+    {% include 'footer.html' %}
 </body>
 </html>

@@ -1,5 +1,5 @@
 from django.contrib import admin
-from .models import Degree, Specialty, Subject, AcademicPlan, Group, Rule, Faculty
+from .models import Degree, Specialty, Subject, AcademicPlan, Group, Rule, Faculty, AdminMessage
 
 
 # Register your models here.
@@ -35,6 +35,10 @@ class FacultyAdmin(admin.ModelAdmin):
     list_display = ['faculty']
 
 
+class MessageAdmin(admin.ModelAdmin):
+    list_display = ['is_solve', 'user', 'topic', 'mail', 'text', ]
+
+
 admin.site.register(Degree, DegreeAdmin)
 admin.site.register(Subject, SubjectAdmin)
 admin.site.register(Specialty, SpecialtyAdmin)
@@ -42,3 +46,4 @@ admin.site.register(AcademicPlan, AcademicAdmin)
 admin.site.register(Group, GroupAdmin)
 admin.site.register(Rule, RuleAdmin)
 admin.site.register(Faculty, FacultyAdmin)
+admin.site.register(AdminMessage, MessageAdmin)

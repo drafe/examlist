@@ -1,0 +1,17 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block content %}
+<div class="max-w-screen-lg body-font container mx-auto ">
+  <h1 class="mt-12 font-normal text-lg">Отправить сообщение администратору</h1>
+  <div class="flex flex-nowrap flex-row items-center justify-between ">
+    <div class="w-1/2 mt-10">
+        <form class=" w-5/6 flex flex-wrap flex-column" enctype="multipart/form-data" method="post" >
+            {% csrf_token %}
+            {{ form }}
+            <button class="w-full my-9 px-3 pt-1 pb-2 font-semibold rounded border-2 button-deepblue tracking-wide inline-flex justify-center link-home-hover" type="submit">Загрузить</button>
+      </form>
+    </div>
+  </div>
+</div>
+{% endblock content %}
