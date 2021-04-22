@@ -41,7 +41,8 @@ class SendMessageView(FormView):
 
     def form_valid(self, form):
         message = form.save(commit=False)
-        message.user = self.request.user or None
+        if self.request.user.is_authenticated:
+            message.user = self.request.user
         message.save()
         messages.success(self.request, "Ваше сообщение отправлено")
         return super(SendMessageView, self).form_valid(form)
