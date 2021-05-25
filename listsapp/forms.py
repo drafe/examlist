@@ -38,9 +38,6 @@ class SendMessageForm(forms.ModelForm):
             'text': 'Текст сообщения',
         }
 
-    def send_email(self):
-        pass
-
 
 class SubjectConflictSolve(forms.Form):
     subject = forms.CharField(label='', max_length=240,
@@ -96,75 +93,6 @@ class PlanItemUpload(forms.Form):
     h_practice = forms.IntegerField(label='', widget=h_widget)
     control = forms.ChoiceField(label='', choices=AcademicPlan.CONTROLS,
                                 widget=forms.Select(attrs={'class': HOURS_CLASS}))
-
-    # def __init__(self, *args, **kwargs):
-    #     if kwargs.get('initial'):
-    #         subject = kwargs.get('initial').get('id_subject')
-    #         self.id_subject = subject
-    #         self.base_fields['subject'].value = subject.subject
-    #     super(PlanItemUpload, self).__init__(*args, **kwargs)
-
-    # class Meta:
-    #     existed_stub = Specialty.objects.all()[0]
-    #     model = AcademicPlan
-    #     # fields = '__all__'
-    #     fields = ['semester', 'id_subject', 'h_lecture', 'h_laboratory', 'h_practice', 'control', 'id_specialty']
-    #
-    #     labels = {
-    #         'semester': _(''),
-    #         'id_subject': _(''),
-    #         'h_laboratory': _(''),
-    #         'h_lecture': _(''),
-    #         'h_practice': _(''),
-    #         'control': _(''),
-    #     }
-    #
-    #     widgets = {
-    #         'semester': forms.NumberInput(
-    #             attrs={
-    #                 'class': HOURS_CLASS,
-    #                 'type': "number",
-    #                 'value': '1',
-    #                 'min': '1',
-    #                 'max': AcademicPlan.MAX_SEMESTER
-    #             }),
-    #         'h_laboratory': forms.NumberInput(
-    #             attrs={
-    #                 'class': HOURS_CLASS,
-    #                 'type': "number",
-    #                 'value': '0',
-    #                 'min': '0',
-    #                 'max': '9',
-    #             }),
-    #         'h_lecture': forms.NumberInput(
-    #             attrs={
-    #                 'class': HOURS_CLASS,
-    #                 'type': "number",
-    #                 'value': '0',
-    #                 'min': '0',
-    #                 'max': '9',
-    #             }),
-    #         'h_practice': forms.NumberInput(
-    #             attrs={
-    #                 'class': HOURS_CLASS,
-    #                 'type': "number",
-    #                 'value': '0',
-    #                 'min': '0',
-    #                 'max': '9',
-    #             }),
-    #         'control': forms.Select(attrs={'class': HOURS_CLASS}),
-    #         'id_specialty': forms.TextInput(
-    #             attrs={
-    #                 'class': INPUT_CLASS,
-    #                 'type': "hidden",
-    #                 'value': existed_stub,
-    #             }),
-    #         'id_subject': forms.TextInput(
-    #             attrs={
-    #                 'class': SUBJECT_CLASS,
-    #                 'disabled': True,
-    #             }),
-    #     }
 
 
 class SubjectFilterForm(forms.Form):

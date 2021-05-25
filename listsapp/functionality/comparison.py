@@ -48,16 +48,16 @@ class FuzzySubjectsComparison:
         equalNgram = 0
         first_gram_count = len(first) - f.NGRAM_LENGTH + 1
         second_gram_count = len(second) - f.NGRAM_LENGTH + 1
-        usedNgram = [False for _ in range(second_gram_count)]
+        used_ngram = [False for _ in range(second_gram_count)]
 
         for i in range(first_gram_count):
             first_gram = first[i:i + f.NGRAM_LENGTH]
             for j in range(second_gram_count):
-                if not usedNgram[j]:
+                if not used_ngram[j]:
                     second_gram = second[j:j + f.NGRAM_LENGTH]
                     if first_gram == second_gram:
                         equalNgram += 1
-                        usedNgram[j] = True
+                        used_ngram[j] = True
                         break
         tanimoto = equalNgram / (first_gram_count + second_gram_count - equalNgram)
         return tanimoto >= f.THRESHOLD_WORD
@@ -74,14 +74,14 @@ class FuzzySubjectsComparison:
         equalWords = 0
         first_words = f.words(first)
         second_words = f.words(second)
-        usedWords = [False for _ in range(len(second_words))]
+        used_words = [False for _ in range(len(second_words))]
 
         for i in first_words:
             for _, j in enumerate(second_words):
-                if not usedWords[_]:
+                if not used_words[_]:
                     if f.isWordsFuzzyEqual(i, j):
                         equalWords += 1
-                        usedWords[_] = True
+                        used_words[_] = True
                         break
 
         return equalWords / (len(first_words) + len(second_words) - equalWords)
